@@ -35,20 +35,37 @@ class CanvasView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         drawPredictions(canvas, predictions, leftPoint, topPoint)
     }
 
+    /**
+     * 予測値からバウンディングボックスと認識率の描画
+     */
     private fun drawPredictions(canvas: Canvas, predictions: ArrayList<Recognition>,
                                 leftPoint: Float, topPoint: Float) {
-        paint.strokeWidth = 5.0f
-        paint.style = Paint.Style.STROKE
         for (i in 0 until predictions.count()) {
+            // バウンディングボックスの描画
             paint.color = selectColor(i)
+            paint.strokeWidth = 5.0f
+            paint.style = Paint.Style.STROKE
             val left = leftPoint + predictions[i].location.left
             val top = topPoint + predictions[i].location.top
             val right = leftPoint + predictions[i].location.right
             val bottom = topPoint + predictions[i].location.bottom
             canvas.drawRect(left, top, right, bottom, paint)
+
+            // 認識率の描画
+            paint.strokeWidth = 1.0f
+            paint.style = Paint.Style.FILL_AND_STROKE
+            paint.textSize = 17.5f
+            canvas.drawText(
+                "${predictions[i].label}:${String.format("%.0f", predictions[i].confidence)}%",
+                left,
+                top + 17.5f,
+                paint)
         }
     }
 
+    /**
+     * 色の選択
+     */
     private fun selectColor(index: Int) : Int {
         val colors = arrayOf(
             Color.RED,

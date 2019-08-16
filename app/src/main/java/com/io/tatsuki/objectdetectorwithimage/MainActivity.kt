@@ -124,6 +124,7 @@ class MainActivity : AppCompatActivity() {
                         break
                     }
                     val scoreString = String.format("%.2f", score)
+                    suppressedPredictions[i].confidence = score
                     Log.d(tag, "Recognition ${suppressedPredictions[i].label} : $scoreString%\n" +
                             "(${suppressedPredictions[i].location.left}, ${suppressedPredictions[i].location.top}) " +
                             "(${suppressedPredictions[i].location.right}, ${suppressedPredictions[i].location.bottom})")
