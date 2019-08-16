@@ -18,6 +18,8 @@ import java.io.InputStreamReader
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.exp
+import kotlin.math.max
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
 
@@ -80,6 +82,8 @@ class MainActivity : AppCompatActivity() {
 
                 decodeCenterSizeBoxes(predictions)
 
+                val recognitions = ArrayList<Recognition>()
+
                 for (i in 0 until numResults) {
                     var topClassScore = -1000f
                     var topClassScoreIndex = -1
@@ -96,19 +100,25 @@ class MainActivity : AppCompatActivity() {
 
                     if (topClassScore > 0.01f) {
                         Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${outputClasses[0][i][topClassScoreIndex]}")
+
                         val location = RectF(
                             predictions[0][i][0][1] * inputImageSize,
                             predictions[0][i][0][0] * inputImageSize,
                             predictions[0][i][0][3] * inputImageSize,
                             predictions[0][i][0][2] * inputImageSize)
                         Log.d(tag, "Location=(${location.left}, ${location.top}, ${location.right}, ${location.bottom})")
+
                         val recognition = Recognition(
                             i.toString(),
                             labels.get(topClassScoreIndex),
                             outputClasses[0][i][topClassScoreIndex],
                             location)
+                        recognitions.add(recognition)
                     }
                 }
+                // 1. recognition リスト作成
+                // 2. confidence でソート
+                // 3. NMS計算
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
@@ -232,5 +242,46 @@ class MainActivity : AppCompatActivity() {
             locations[0][i][0][2] = yMax
             locations[0][i][0][3] = xMax
         }
+    }
+
+    /**
+     * IoU計算
+     */
+    private fun calculateIoU(boxA: RectF, boxB: RectF): Float {
+        val xA = max(boxA.left, boxB.left)
+        val yA = max(boxA.top, boxB.top)
+        val xB = min(boxA.right, boxB.right)
+        val yB = min(boxA.bottom, boxB.bottom)
+
+        val intersectionArea = (xB - xA + 1) * (yB - yA + 1)
+
+        val boxAArea = (boxA.right - boxA.left + 1) * (boxA.bottom - boxA.top + 1)
+        val boxBArea = (boxB.right - boxB.left + 1) * (boxB.bottom - boxB.top + 1)
+
+        return intersectionArea / (boxAArea + boxBArea - intersectionArea)
+    }
+
+    /**
+     * Non-Maximum-Suppression
+     */
+    private fun NMS(recognitions: ArrayList<Recognition>, iouThreshold: Float, maxBoxes: Int): ArrayList<Recognition> {
+        recognitions.sortBy { it.confidence }
+        val selectedRecognitions = ArrayList<Recognition>()
+        for (a in 0 until recognitions.count()) {
+            if (selectedRecognitions.count() > maxBoxes) {
+                break
+            }
+            var shouldSelect = true
+            for (b in 0 until selectedRecognitions.count()) {
+                if (calculateIoU(recognitions[a].location, selectedRecognitions[b].location) > iouThreshold) {
+                    shouldSelect = false
+                    break
+                }
+            }
+            if (shouldSelect) {
+                selectedRecognitions.add(recognitions[a])
+            }
+        }
+        return selectedRecognitions
     }
 }
