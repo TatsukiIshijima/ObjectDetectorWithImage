@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private val wScale = 5.0f
 
     private val maxBoxes = 10
+    private val minScore = 20.0f
 
     private var boxPriors = Array(4, { arrayOfNulls<Float>(numResults) })
     private var labels = ArrayList<String>()
@@ -99,14 +100,14 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     if (topClassScore > 0.01f) {
-                        Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${outputClasses[0][i][topClassScoreIndex]}")
+                        //Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${outputClasses[0][i][topClassScoreIndex]}")
 
                         val location = RectF(
                             predictions[0][i][0][1] * inputImageSize,
                             predictions[0][i][0][0] * inputImageSize,
                             predictions[0][i][0][3] * inputImageSize,
                             predictions[0][i][0][2] * inputImageSize)
-                        Log.d(tag, "Location=(${location.left}, ${location.top}, ${location.right}, ${location.bottom})")
+                        //Log.d(tag, "Location=(${location.left}, ${location.top}, ${location.right}, ${location.bottom})")
 
                         val recognition = Recognition(
                             i.toString(),
@@ -116,9 +117,18 @@ class MainActivity : AppCompatActivity() {
                         recognitions.add(recognition)
                     }
                 }
-                // 1. recognition リスト作成
-                // 2. confidence でソート
-                // 3. NMS計算
+
+                val suppressedPredictions = NMS(recognitions, 0.5f, maxBoxes)
+                for (i in 0 until suppressedPredictions.count()) {
+                    val score = 100.0f / (1.0f + exp(-suppressedPredictions[i].confidence))
+                    if (score < minScore) {
+                        break
+                    }
+                    val scoreString = String.format("%.2f", score)
+                    Log.d(tag, "Recognition ${suppressedPredictions[i].label} : $scoreString\n" +
+                            "(${suppressedPredictions[i].location.left}, ${suppressedPredictions[i].location.top}) " +
+                            "(${suppressedPredictions[i].location.right}, ${suppressedPredictions[i].location.bottom})")
+                }
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
@@ -265,7 +275,7 @@ class MainActivity : AppCompatActivity() {
      * Non-Maximum-Suppression
      */
     private fun NMS(recognitions: ArrayList<Recognition>, iouThreshold: Float, maxBoxes: Int): ArrayList<Recognition> {
-        recognitions.sortBy { it.confidence }
+        recognitions.sortByDescending { it.confidence }
         val selectedRecognitions = ArrayList<Recognition>()
         for (a in 0 until recognitions.count()) {
             if (selectedRecognitions.count() > maxBoxes) {
