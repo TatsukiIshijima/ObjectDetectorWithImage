@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //val imageView = findViewById<ImageView>(R.id.image_view)
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.dog)
         val canvasView = findViewById<CanvasView>(R.id.canvas_view)
 
@@ -117,6 +116,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                val finalPredictions = ArrayList<Recognition>()
                 val suppressedPredictions = NMS(recognitions, 0.5f, maxBoxes)
                 for (i in 0 until suppressedPredictions.count()) {
                     val score = 100.0f / (1.0f + exp(-suppressedPredictions[i].confidence))
@@ -127,10 +127,10 @@ class MainActivity : AppCompatActivity() {
                     Log.d(tag, "Recognition ${suppressedPredictions[i].label} : $scoreString%\n" +
                             "(${suppressedPredictions[i].location.left}, ${suppressedPredictions[i].location.top}) " +
                             "(${suppressedPredictions[i].location.right}, ${suppressedPredictions[i].location.bottom})")
+                    finalPredictions.add(suppressedPredictions[i])
                 }
 
-                //imageView.setImageBitmap(resizeBitmap)
-                canvasView.showCanvas(resizeBitmap)
+                canvasView.showCanvas(resizeBitmap, finalPredictions)
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
