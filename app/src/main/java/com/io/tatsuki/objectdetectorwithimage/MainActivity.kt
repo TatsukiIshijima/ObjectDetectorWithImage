@@ -1,6 +1,8 @@
 package com.io.tatsuki.objectdetectorwithimage
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -8,10 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.common.modeldownload.FirebaseLocalModel
 import com.google.firebase.ml.common.modeldownload.FirebaseModelManager
-import com.google.firebase.ml.custom.FirebaseModelDataType
-import com.google.firebase.ml.custom.FirebaseModelInputOutputOptions
-import com.google.firebase.ml.custom.FirebaseModelInterpreter
-import com.google.firebase.ml.custom.FirebaseModelOptions
+import com.google.firebase.ml.custom.*
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -49,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
         loadBoxPriors()
         loadLabels()
-        /*
+
         configureLocalModelSource()
         val interpreter = createInterpreter()!!
         val inputOutputOptions = createInputOutputOptions()
@@ -69,20 +68,16 @@ class MainActivity : AppCompatActivity() {
             .build()
         interpreter.run(inputs, inputOutputOptions)
             .addOnSuccessListener { result ->
-                Log.d(tag, "Run Success! " + result.getOutput(0))
                 val predictions = result.getOutput<Array<Array<Array<FloatArray>>>>(0)
                 val outputClasses = result.getOutput<Array<Array<FloatArray>>>(1)
                 Log.d(tag, "predictions shape = (" + predictions.count().toString() + "," + predictions[0].count().toString() + ","
                         + predictions[0][0].count().toString() + "," + predictions[0][0][0].count().toString() + ")")
                 Log.d(tag, "output classes shape = (" + outputClasses.count().toString() + "," + outputClasses[0].count().toString()
                         + "," + outputClasses[0][0].count().toString() + ")")
+
+                decodeCenterSizeBoxes(predictions)
             }
-            .addOnFailureListener( object : OnFailureListener {
-                override fun onFailure(e: Exception) {
-                    Log.e(tag, e.message)
-                }
-            })
-            */
+            .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
 
     /**
@@ -184,6 +179,25 @@ class MainActivity : AppCompatActivity() {
             bufferReader.close()
         } catch (e: IOException) {
             Log.e(tag, e.message)
+        }
+    }
+
+    private fun decodeCenterSizeBoxes(locations: Array<Array<Array<FloatArray>>>) {
+        for (i in 0 until numResults) {
+            val yCenter = locations[0][i][0][0] / yScale * (boxPriors[2][i] as Float) + (boxPriors[0][i] as Float)
+            val xCenter = locations[0][i][0][1] / xScale * (boxPriors[3][i] as Float) + (boxPriors[1][i] as Float)
+            val h = (exp(locations[0][i][0][2] / hScale) * (boxPriors[2][i] as Float))
+            val w = (exp(locations[0][i][0][3] / wScale) * (boxPriors[3][i] as Float))
+
+            val yMin = yCenter - h / 2.0f
+            val xMin = xCenter - w / 2.0f
+            val yMax = yCenter + h / 2.0f
+            val xMax = xCenter + w / 2.0f
+
+            locations[0][i][0][0] = yMin
+            locations[0][i][0][1] = xMin
+            locations[0][i][0][2] = yMax
+            locations[0][i][0][3] = xMax
         }
     }
 }
