@@ -50,7 +50,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val imageView = findViewById<ImageView>(R.id.image_view)
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.dog)
-        imageView.setImageBitmap(bitmap)
 
         loadBoxPriors()
         loadLabels()
@@ -125,10 +124,12 @@ class MainActivity : AppCompatActivity() {
                         break
                     }
                     val scoreString = String.format("%.2f", score)
-                    Log.d(tag, "Recognition ${suppressedPredictions[i].label} : $scoreString\n" +
+                    Log.d(tag, "Recognition ${suppressedPredictions[i].label} : $scoreString%\n" +
                             "(${suppressedPredictions[i].location.left}, ${suppressedPredictions[i].location.top}) " +
                             "(${suppressedPredictions[i].location.right}, ${suppressedPredictions[i].location.bottom})")
                 }
+
+                imageView.setImageBitmap(resizeBitmap)
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
