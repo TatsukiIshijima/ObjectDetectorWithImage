@@ -3,6 +3,7 @@ package com.io.tatsuki.objectdetectorwithimage
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -35,6 +36,8 @@ class MainActivity : AppCompatActivity() {
     private val xScale = 10.0f
     private val hScale = 5.0f
     private val wScale = 5.0f
+
+    private val maxBoxes = 10
 
     private var boxPriors = Array(4, { arrayOfNulls<Float>(numResults) })
     private var labels = ArrayList<String>()
@@ -92,7 +95,18 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     if (topClassScore > 0.01f) {
-                        Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${topClassScore}")
+                        Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${outputClasses[0][i][topClassScoreIndex]}")
+                        val location = RectF(
+                            predictions[0][i][0][1] * inputImageSize,
+                            predictions[0][i][0][0] * inputImageSize,
+                            predictions[0][i][0][3] * inputImageSize,
+                            predictions[0][i][0][2] * inputImageSize)
+                        Log.d(tag, "Location=(${location.left}, ${location.top}, ${location.right}, ${location.bottom})")
+                        val recognition = Recognition(
+                            i.toString(),
+                            labels.get(topClassScoreIndex),
+                            outputClasses[0][i][topClassScoreIndex],
+                            location)
                     }
                 }
             }
