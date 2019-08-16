@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
-import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.common.modeldownload.FirebaseLocalModel
@@ -48,8 +47,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val imageView = findViewById<ImageView>(R.id.image_view)
+        //val imageView = findViewById<ImageView>(R.id.image_view)
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.dog)
+        val canvasView = findViewById<CanvasView>(R.id.canvas_view)
 
         loadBoxPriors()
         loadLabels()
@@ -129,7 +129,8 @@ class MainActivity : AppCompatActivity() {
                             "(${suppressedPredictions[i].location.right}, ${suppressedPredictions[i].location.bottom})")
                 }
 
-                imageView.setImageBitmap(resizeBitmap)
+                //imageView.setImageBitmap(resizeBitmap)
+                canvasView.showCanvas(resizeBitmap)
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
