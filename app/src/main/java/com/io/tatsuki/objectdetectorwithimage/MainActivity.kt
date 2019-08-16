@@ -58,9 +58,9 @@ class MainActivity : AppCompatActivity() {
         for (x in 0 until inputImageSize) {
             for (y in 0 until inputImageSize) {
                 val pixel = resizeBitmap.getPixel(x, y)
-                input[batchNum][x][y][0] = (Color.red(pixel) - 127) / 255.0f
-                input[batchNum][x][y][1] = (Color.green(pixel) - 127) / 255.0f
-                input[batchNum][x][y][2] = (Color.blue(pixel) - 127) / 255.0f
+                input[batchNum][y][x][0] = (Color.red(pixel) - 127) / 255.0f
+                input[batchNum][y][x][1] = (Color.green(pixel) - 127) / 255.0f
+                input[batchNum][y][x][2] = (Color.blue(pixel) - 127) / 255.0f
             }
         }
         val inputs = FirebaseModelInputs.Builder()
@@ -76,6 +76,25 @@ class MainActivity : AppCompatActivity() {
                         + "," + outputClasses[0][0].count().toString() + ")")
 
                 decodeCenterSizeBoxes(predictions)
+
+                for (i in 0 until numResults) {
+                    var topClassScore = -1000f
+                    var topClassScoreIndex = -1
+
+                    // 最初のラベルはスキップ
+                    for (j in 1 until numClasses) {
+                        val score = expit(outputClasses[0][i][j])
+
+                        if (score > topClassScore) {
+                            topClassScoreIndex = j
+                            topClassScore = score
+                        }
+                    }
+
+                    if (topClassScore > 0.01f) {
+                        Log.d(tag, "TopClassScoreIndex=${topClassScoreIndex}, ${labels.get(topClassScoreIndex)} : ${topClassScore}")
+                    }
+                }
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
@@ -170,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                     break
                 }
                 labels.add(label)
-                Log.d(tag, "Label : $label")
+                //Log.d(tag, "Label : $label")
             }
             while (true)
             Log.d(tag, "Loaded Labels.")
