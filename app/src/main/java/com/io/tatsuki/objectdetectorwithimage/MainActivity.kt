@@ -16,6 +16,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.exp
 
 class MainActivity : AppCompatActivity() {
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private val wScale = 5.0f
 
     private var boxPriors = Array(4, { arrayOfNulls<Float>(numResults) })
+    private var labels = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageBitmap(bitmap)
 
         loadBoxPriors()
+        loadLabels()
         /*
         configureLocalModelSource()
         val interpreter = createInterpreter()!!
@@ -144,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                 if (priorIndex != numResults) {
                     inputStream.close()
                     bufferReader.close()
-                    throw RuntimeException("BoxPrior length mismatch : " + priorIndex + " vs " + numResults)
+                    throw RuntimeException("BoxPrior length mismatch : $priorIndex vs $numResults")
                 }
             }
 
@@ -158,7 +161,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * ラベルファイル読み込み
+     */
     private fun loadLabels() {
+        try {
+            val inputStream = assets.open(labelFile)
+            val bufferReader = BufferedReader(InputStreamReader(inputStream))
+            var label: String?
+            do {
+                label = bufferReader.readLine()
+                if (label == null) {
+                    break
+                }
+                labels.add(label)
+                Log.d(tag, "Label : $label")
+            }
+            while (true)
+            Log.d(tag, "Loaded Labels.")
 
+            inputStream.close()
+            bufferReader.close()
+        } catch (e: IOException) {
+            Log.e(tag, e.message)
+        }
     }
 }
