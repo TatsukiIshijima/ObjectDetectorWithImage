@@ -41,3 +41,6 @@ tflite_convert --graph_def_file=frozen_inference_graph.pb
 2. MainActivity #50 に 1. で配置した画像を指定する
 
 ### 画面
+<div align="center">
+<img src="https://user-images.githubusercontent.com/17661705/63207197-a855d600-c0fc-11e9-8717-f22f26f5596e.png" alt="img" title="screenshot">
+</div>
