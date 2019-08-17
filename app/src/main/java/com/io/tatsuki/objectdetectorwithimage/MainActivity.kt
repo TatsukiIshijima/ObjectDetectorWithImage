@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                     finalPredictions.add(suppressedPredictions[i])
                 }
 
-                canvasView.showCanvas(resizeBitmap, finalPredictions)
+                canvasView.showCanvas(bitmap, finalPredictions, inputImageSize, inputImageSize)
             }
             .addOnFailureListener { e -> Log.e(tag, e.message) }
     }
