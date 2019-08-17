@@ -238,6 +238,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 座標のフォーマット変換
+     * (cy, cx, h, w) → (ymin, xmin, ymax, xmax)
+     */
     private fun decodeCenterSizeBoxes(locations: Array<Array<Array<FloatArray>>>) {
         for (i in 0 until numResults) {
             val yCenter = locations[0][i][0][0] / yScale * (boxPriors[2][i] as Float) + (boxPriors[0][i] as Float)
