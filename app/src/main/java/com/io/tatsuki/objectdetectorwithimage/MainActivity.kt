@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity() {
         val resizeBitmap = Bitmap.createScaledBitmap(bitmap, inputImageSize, inputImageSize, true)
         val batchNum = 0
         val input = Array(1) { Array(inputImageSize) { Array(inputImageSize) { FloatArray(3) } } }
-        for (x in 0 until inputImageSize) {
-            for (y in 0 until inputImageSize) {
+        for (y in 0 until inputImageSize) {
+            for (x in 0 until inputImageSize) {
                 val pixel = resizeBitmap.getPixel(x, y)
                 input[batchNum][y][x][0] = (Color.red(pixel) - 127) / 255.0f
                 input[batchNum][y][x][1] = (Color.green(pixel) - 127) / 255.0f
